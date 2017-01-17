@@ -1,0 +1,10 @@
+{
+    "require": {
+        "elasticsearch/elasticsearch": "^5.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Evaneos\\Elastic\\": "src"
+        }
+    }
+}
