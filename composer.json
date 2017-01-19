@@ -1,6 +1,8 @@
 {
     "require": {
-        "elasticsearch/elasticsearch": "^5.1"
+        "elasticsearch/elasticsearch": "^5.1",
+        "beberlei/assert": "^2.7",
+        "league/iso3166": "^1.0"
     },
     "autoload": {
         "psr-4": {
