@@ -15,8 +15,8 @@ class PlaceIndex implements \JsonSerializable
     /** @var string[] */
     private $name;
 
-    /** @var Country */
-    private $country;
+    /** @var Country[] */
+    private $countries;
 
     /** @var Type[] */
     private $types;
@@ -29,20 +29,20 @@ class PlaceIndex implements \JsonSerializable
      *
      * @param PlaceId        $id
      * @param string[]       $name
-     * @param Country        $country
+     * @param Country[]      $countries
      * @param Type[]         $types
      * @param PlaceHierarchy $hierarchy
      */
     public function __construct(
         PlaceId $id,
         array $name,
-        Country $country,
+        array $countries,
         array $types,
         PlaceHierarchy $hierarchy
     ) {
         $this->id = $id;
         $this->name = $name;
-        $this->country = $country;
+        $this->countries = $countries;
         $this->types = $types;
         $this->hierarchy = $hierarchy;
     }
@@ -64,11 +64,11 @@ class PlaceIndex implements \JsonSerializable
     }
 
     /**
-     * @return Country
+     * @return Country[]
      */
-    public function getCountry()
+    public function getCountries()
     {
-        return $this->country;
+        return $this->countries;
     }
 
     /**
@@ -100,8 +100,8 @@ class PlaceIndex implements \JsonSerializable
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'country' => $this->country,
-            'types' => $this->types,
+            'country' => $this->countries,
+            'type' => $this->types,
             'hierarchy' => $this->hierarchy
         ];
     }

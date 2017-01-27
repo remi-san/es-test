@@ -62,9 +62,6 @@ class Country implements \JsonSerializable
      */
     public function jsonSerialize()
     {
-        return [
-            'iso2' => $this->iso2,
-            'name' => $this->name
-        ];
+        return $this->iso2;
     }
 }

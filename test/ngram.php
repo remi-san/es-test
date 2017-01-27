@@ -1,6 +1,12 @@
 <?php
 
 use Elasticsearch\ClientBuilder;
+use Evaneos\Elastic\PlaceIndex;
+use Evaneos\Elastic\VO\Country;
+use Evaneos\Elastic\VO\PlaceHierarchy;
+use Evaneos\Elastic\VO\PlaceId;
+use Evaneos\Elastic\VO\Type;
+use Ramsey\Uuid\Uuid;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -71,11 +77,21 @@ $indexParams = [
                             ]
                         ]
                     ],
+                    'country' => [
+                        'type' => 'keyword'
+                    ],
                     'type' => [
                         'type' => 'nested',
                         'properties' => [
                             'key' => [ 'type' => 'keyword' ],
                             'name' => [ 'type' => 'string' ]
+                        ]
+                    ],
+                    'hierarchy' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'parents' => [ 'type' => 'keyword' ],
+                            'grandParents' => [ 'type' => 'keyword' ]
                         ]
                     ]
                 ]
@@ -86,24 +102,29 @@ $indexParams = [
 $client->indices()->create($indexParams);
 
 // Create the place
+$uuid = (string) Uuid::uuid4();
+$place = new PlaceIndex(
+    new PlaceId($uuid),
+    [ 'Paris', 'Lutèce', 'Paname', 'Parigi' ],
+    [ new Country('fr') ],
+    [ new Type('city', 'A populated place'), new Type('capital', 'A capital of a country') ],
+    new PlaceHierarchy(
+        [ new PlaceId((string) Uuid::uuid4()) ],
+        [ new PlaceId((string) Uuid::uuid4()) ]
+    )
+);
 $placeIndexed = $client->index([
     'index' => 'fr',
     'type' => 'place',
-    'id' => 'abcd',
-    'body' => [
-        'name' => [ 'Paris', 'Lutèce', 'Paname', 'Parigi' ],
-        'type' => [
-            [ 'key' => 'city', 'name' => 'A populated place' ],
-            [ 'key' => 'capital', 'name' => 'A capital of a country' ]
-        ]
-    ]
+    'id' => $uuid,
+    'body' => json_encode($place)
 ]);
 
 // Get the place
 $place = $client->get([
     'index' => 'fr',
     'type' => 'place',
-    'id' => 'abcd'
+    'id' => $uuid
 ]);
 //var_dump($place);
 
@@ -148,5 +169,5 @@ var_dump($searchResult);
 $client->delete([
     'index' => 'fr',
     'type' => 'place',
-    'id' => 'abcd'
+    'id' => $uuid
 ]);
