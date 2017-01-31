@@ -1,6 +1,11 @@
 <?php
 
 use Elasticsearch\ClientBuilder;
+use Evaneos\Elastic\Index\Analysis;
+use Evaneos\Elastic\Index\Analysis\Analyzer\MiddleAutocompleteAnalyzer;
+use Evaneos\Elastic\Index\Analysis\Analyzer\PrefixAutocompleteAnalyzer;
+use Evaneos\Elastic\Index\Analysis\Filter\EdgeNGramFilter;
+use Evaneos\Elastic\Index\Analysis\Filter\NGramFilter;
 use Evaneos\Elastic\PlaceIndex;
 use Evaneos\Elastic\VO\Country;
 use Evaneos\Elastic\VO\PlaceHierarchy;
@@ -19,46 +24,18 @@ try {
 
 }
 
+$analysis = new Analysis();
+$analysis->addFilter(new EdgeNGramFilter(2, 10));
+$analysis->addFilter(new NGramFilter(3, 10));
+$analysis->addAnalyzer(new MiddleAutocompleteAnalyzer());
+$analysis->addAnalyzer(new PrefixAutocompleteAnalyzer());
+
 // Create the index
 $indexParams = [
     'index' => 'fr',
     'body' => [
         'settings' => [
-            'analysis' => [
-                'filter' => [
-                    'ngrams_for_all' => [
-                        'type'     => 'nGram',
-                        'max_gram' => '10',
-                        'min_gram' => '3'
-                    ],
-                    'ngrams_for_prefix' => [
-                        'type'     => 'edgeNGram',
-                        'max_gram' => '10',
-                        'min_gram' => '2',
-                        'side'     => 'front'
-                    ]
-                ],
-                'analyzer' => [
-                    'middle_autocomplete' => [
-                        'filter' => [
-                            'lowercase',
-                            'asciifolding',
-                            'ngrams_for_all'
-                        ],
-                        'type' => 'custom',
-                        'tokenizer' => 'standard'
-                    ],
-                    'prefix_autocomplete' => [
-                        'filter' => [
-                            'lowercase',
-                            'asciifolding',
-                            'ngrams_for_prefix'
-                        ],
-                        'type' => 'custom',
-                        'tokenizer' => 'standard'
-                    ]
-                ]
-            ]
+            'analysis' => json_decode(json_encode($analysis), true)
         ],
         'mappings' => [
             'place' => [
@@ -69,11 +46,11 @@ $indexParams = [
                         'fields' => [
                             'prefix_autocomplete' => [
                                 'type' => 'string',
-                                'analyzer' => 'prefix_autocomplete'
+                                'analyzer' => 'prefix_autocomplete_analyzer'
                             ],
                             'middle_autocomplete' => [
                                 'type' => 'string',
-                                'analyzer' => 'middle_autocomplete'
+                                'analyzer' => 'middle_autocomplete_analyzer'
                             ]
                         ]
                     ],
@@ -126,7 +103,7 @@ $place = $client->get([
     'type' => 'place',
     'id' => $uuid
 ]);
-//var_dump($place);
+var_dump($place);
 
 // Search by autocomplete
 $term = 'Paris';
@@ -163,7 +140,7 @@ $searchReq = [
     ]
 ];
 $searchResult = $client->search($searchReq);
-var_dump($searchResult);
+//var_dump($searchResult);
 
 // Delete
 $client->delete([
