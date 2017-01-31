@@ -21,10 +21,14 @@ class TokenizersCollection implements \JsonSerializable
 
     /**
      * @param Tokenizer $tokenizer
+     *
+     * @return $this
      */
     public function addTokenizer(Tokenizer $tokenizer)
     {
         $this->tokenizers[$tokenizer->getName()] = $tokenizer;
+
+        return $this;
     }
 
     /**

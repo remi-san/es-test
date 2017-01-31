@@ -1,32 +1,32 @@
 <?php
 
-namespace Evaneos\Elastic\Index\Analysis\Analyzer\Collection;
+namespace Evaneos\Elastic\Index\Mapping\Property\Collection;
 
-use Evaneos\Elastic\Index\Analysis\Analyzer;
+use Evaneos\Elastic\Index\Mapping\Property;
 
-class AnalyzersCollection implements \JsonSerializable
+class PropertiesCollection implements \JsonSerializable
 {
     /**
-     * @var Analyzer[]
+     * @var Property[]
      */
-    private $analyzers;
+    private $properties;
 
     /**
      * FiltersCollection constructor.
      */
     public function __construct()
     {
-        $this->analyzers = [];
+        $this->properties = [];
     }
 
     /**
-     * @param Analyzer $analyzer
+     * @param Property $property
      *
      * @return $this
      */
-    public function addAnalyzer(Analyzer $analyzer)
+    public function addProperty(Property $property)
     {
-        $this->analyzers[$analyzer->getName()] = $analyzer;
+        $this->properties[$property->getName()] = $property;
 
         return $this;
     }
@@ -36,7 +36,7 @@ class AnalyzersCollection implements \JsonSerializable
      */
     public function isEmpty()
     {
-        return count($this->analyzers) === 0;
+        return count($this->properties) === 0;
     }
 
     /**
@@ -49,6 +49,6 @@ class AnalyzersCollection implements \JsonSerializable
      */
     public function jsonSerialize()
     {
-        return $this->analyzers;
+        return $this->properties;
     }
 }

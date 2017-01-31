@@ -6,6 +6,14 @@ use Evaneos\Elastic\Index\Analysis\Analyzer\MiddleAutocompleteAnalyzer;
 use Evaneos\Elastic\Index\Analysis\Analyzer\PrefixAutocompleteAnalyzer;
 use Evaneos\Elastic\Index\Analysis\Filter\EdgeNGramFilter;
 use Evaneos\Elastic\Index\Analysis\Filter\NGramFilter;
+use Evaneos\Elastic\Index\Definition;
+use Evaneos\Elastic\Index\Mapping;
+use Evaneos\Elastic\Index\Mapping\Collection\MappingsCollection;
+use Evaneos\Elastic\Index\Mapping\Property;
+use Evaneos\Elastic\Index\Mapping\Property\Collection\PropertiesCollection;
+use Evaneos\Elastic\Index\Mapping\Property\NestedProperty;
+use Evaneos\Elastic\Index\Mapping\Property\ObjectProperty;
+use Evaneos\Elastic\Index\Mapping\Property\SimpleProperty;
 use Evaneos\Elastic\PlaceIndex;
 use Evaneos\Elastic\VO\Country;
 use Evaneos\Elastic\VO\PlaceHierarchy;
@@ -24,57 +32,57 @@ try {
 
 }
 
-$analysis = new Analysis();
-$analysis->addFilter(new EdgeNGramFilter(2, 10));
-$analysis->addFilter(new NGramFilter(3, 10));
-$analysis->addAnalyzer(new MiddleAutocompleteAnalyzer());
-$analysis->addAnalyzer(new PrefixAutocompleteAnalyzer());
+$analysis = (new Analysis())
+    ->addFilter(new EdgeNGramFilter(2, 10))
+    ->addFilter(new NGramFilter(3, 10))
+    ->addAnalyzer(new MiddleAutocompleteAnalyzer())
+    ->addAnalyzer(new PrefixAutocompleteAnalyzer());
+
+$mappings = (new MappingsCollection())
+    ->addMapping(
+        (new Mapping('place'))
+            ->addProperty(
+                (new SimpleProperty('name', Property::TYPE_STRING, 'french'))
+                    ->addField(
+                        new SimpleProperty(
+                            'prefix_autocomplete',
+                            Property::TYPE_STRING,
+                            PrefixAutocompleteAnalyzer::NAME
+                        )
+                    )
+                    ->addField(
+                        new SimpleProperty(
+                            'middle_autocomplete',
+                            Property::TYPE_STRING,
+                            MiddleAutocompleteAnalyzer::NAME
+                        )
+                    )
+            )
+            ->addProperty(new SimpleProperty('country', Property::TYPE_KEYWORD))
+            ->addProperty(
+                new NestedProperty(
+                    'type',
+                    (new PropertiesCollection())
+                        ->addProperty(new SimpleProperty('key', Property::TYPE_KEYWORD))
+                        ->addProperty(new SimpleProperty('name', Property::TYPE_STRING))
+                )
+            )
+            ->addProperty(
+                new ObjectProperty(
+                    'hierarchy',
+                    (new PropertiesCollection())
+                        ->addProperty(new SimpleProperty('parents', Property::TYPE_KEYWORD))
+                        ->addProperty(new SimpleProperty('grandParents', Property::TYPE_KEYWORD))
+                )
+            )
+    );
+
+$definition = new Definition($analysis, $mappings);
 
 // Create the index
 $indexParams = [
     'index' => 'fr',
-    'body' => [
-        'settings' => [
-            'analysis' => json_decode(json_encode($analysis), true)
-        ],
-        'mappings' => [
-            'place' => [
-                'properties' => [
-                    'name' => [
-                        'type' => 'string',
-                        'analyzer' => 'french',
-                        'fields' => [
-                            'prefix_autocomplete' => [
-                                'type' => 'string',
-                                'analyzer' => 'prefix_autocomplete_analyzer'
-                            ],
-                            'middle_autocomplete' => [
-                                'type' => 'string',
-                                'analyzer' => 'middle_autocomplete_analyzer'
-                            ]
-                        ]
-                    ],
-                    'country' => [
-                        'type' => 'keyword'
-                    ],
-                    'type' => [
-                        'type' => 'nested',
-                        'properties' => [
-                            'key' => [ 'type' => 'keyword' ],
-                            'name' => [ 'type' => 'string' ]
-                        ]
-                    ],
-                    'hierarchy' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'parents' => [ 'type' => 'keyword' ],
-                            'grandParents' => [ 'type' => 'keyword' ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    ]
+    'body' => json_encode($definition)
 ];
 $client->indices()->create($indexParams);
 
@@ -128,10 +136,10 @@ $searchReq = [
                         ]
                     ],
                     [
-                        "multi_match" => [
-                            "query" =>  $term,
-                            "type" =>   "most_fields",
-                            "fields" => [ "name^10", "name.prefix_autocomplete^3", "name.middle_autocomplete" ]
+                        'multi_match' => [
+                            'query' =>  $term,
+                            'type' =>   'most_fields',
+                            'fields' => [ 'name^10', 'name.prefix_autocomplete^3', 'name.middle_autocomplete' ]
                         ]
                     ]
                 ]

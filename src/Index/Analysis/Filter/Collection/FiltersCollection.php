@@ -21,10 +21,14 @@ class FiltersCollection implements \JsonSerializable
 
     /**
      * @param Filter $filter
+     *
+     * @return $this
      */
     public function addFilter(Filter $filter)
     {
         $this->filters[$filter->getName()] = $filter;
+
+        return $this;
     }
 
     /**

@@ -29,26 +29,38 @@ class Analysis implements \JsonSerializable
 
     /**
      * @param Filter $filter
+     *
+     * @return $this
      */
     public function addFilter(Filter $filter)
     {
         $this->filters->addFilter($filter);
+
+        return $this;
     }
 
     /**
      * @param Tokenizer $tokenizer
+     *
+     * @return $this
      */
     public function addTokenizer(Tokenizer $tokenizer)
     {
         $this->tokenizers->addTokenizer($tokenizer);
+
+        return $this;
     }
 
     /**
      * @param Analyzer $analyzer
+     *
+     * @return $this
      */
     public function addAnalyzer(Analyzer $analyzer)
     {
         $this->analyzers->addAnalyzer($analyzer);
+
+        return $this;
     }
 
     /**
