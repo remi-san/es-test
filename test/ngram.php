@@ -71,8 +71,8 @@ $mappings = (new MappingsCollection())
                 new ObjectProperty(
                     'hierarchy',
                     (new PropertiesCollection())
-                        ->addProperty(new SimpleProperty('parents', Property::TYPE_KEYWORD))
-                        ->addProperty(new SimpleProperty('grandParents', Property::TYPE_KEYWORD))
+                        ->addProperty(new SimpleProperty('parent', Property::TYPE_KEYWORD))
+                        ->addProperty(new SimpleProperty('grandParent', Property::TYPE_KEYWORD))
                 )
             )
     );
@@ -88,13 +88,14 @@ $client->indices()->create($indexParams);
 
 // Create the place
 $uuid = (string) Uuid::uuid4();
+$parentUuid = (string) Uuid::uuid4();
 $place = new PlaceIndex(
     new PlaceId($uuid),
     [ 'Paris', 'Lutèce', 'Paname', 'Parigi' ],
     [ new Country('fr') ],
     [ new Type('city', 'A populated place'), new Type('capital', 'A capital of a country') ],
     new PlaceHierarchy(
-        [ new PlaceId((string) Uuid::uuid4()) ],
+        [ new PlaceId($parentUuid) ],
         [ new PlaceId((string) Uuid::uuid4()) ]
     )
 );
@@ -111,7 +112,7 @@ $place = $client->get([
     'type' => 'place',
     'id' => $uuid
 ]);
-var_dump($place);
+//var_dump($place);
 
 // Search by autocomplete
 $term = 'Paris';
@@ -141,6 +142,12 @@ $searchReq = [
                             'type' =>   'most_fields',
                             'fields' => [ 'name^10', 'name.prefix_autocomplete^3', 'name.middle_autocomplete' ]
                         ]
+                    ],
+                    [
+                        'term' => [ 'hierarchy.parent' => $parentUuid ]
+                    ],
+                    [
+                        'term' => [ 'country' => (string) new Country('fr') ]
                     ]
                 ]
             ]
@@ -148,7 +155,7 @@ $searchReq = [
     ]
 ];
 $searchResult = $client->search($searchReq);
-//var_dump($searchResult);
+var_dump($searchResult);
 
 // Delete
 $client->delete([
