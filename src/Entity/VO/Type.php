@@ -1,6 +1,6 @@
 <?php
 
-namespace Evaneos\Elastic\VO;
+namespace Evaneos\Elastic\Entity\VO;
 
 class Type implements \JsonSerializable
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Evaneos\Elastic;
+namespace Evaneos\Elastic\Entity;
 
-use Evaneos\Elastic\VO\Country;
-use Evaneos\Elastic\VO\PlaceHierarchy;
-use Evaneos\Elastic\VO\PlaceId;
-use Evaneos\Elastic\VO\Type;
+use Evaneos\Elastic\Entity\VO\Country;
+use Evaneos\Elastic\Entity\VO\PlaceHierarchy;
+use Evaneos\Elastic\Entity\VO\PlaceId;
+use Evaneos\Elastic\Entity\VO\Type;
 
 class PlaceIndex implements \JsonSerializable
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Evaneos\Elastic\VO;
+namespace Evaneos\Elastic\Entity\VO;
 
 use League\ISO3166\ISO3166;
 

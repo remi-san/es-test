@@ -1,6 +1,8 @@
 <?php
 
-namespace Evaneos\Elastic\VO;
+namespace Evaneos\Elastic\Entity\VO;
+
+use Evaneos\Elastic\Entity\VO\PlaceId;
 
 class PlaceHierarchy implements \JsonSerializable
 {
