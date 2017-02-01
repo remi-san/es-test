@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__ . '/../vendor/autoload.php';
+
 use Elasticsearch\ClientBuilder;
 use Evaneos\Elastic\Index\Analysis;
 use Evaneos\Elastic\Index\Analysis\Analyzer\MiddleAutocompleteAnalyzer;
@@ -20,9 +22,9 @@ use Evaneos\Elastic\Entity\VO\PlaceHierarchy;
 use Evaneos\Elastic\Entity\VO\PlaceId;
 use Evaneos\Elastic\Entity\VO\Type;
 use Evaneos\Elastic\Indexing\PlaceIndexer;
+use Evaneos\Elastic\Search\PlaceCriteria;
+use Evaneos\Elastic\Search\PlaceSearch;
 use Ramsey\Uuid\Uuid;
-
-require __DIR__ . '/../vendor/autoload.php';
 
 $analysis = (new Analysis())
     ->addFilter(new EdgeNGramFilter(2, 10))
@@ -72,6 +74,7 @@ $mappings = (new MappingsCollection())
 $definition = new Definition('fr', $analysis, $mappings);
 $client = ClientBuilder::create()->setHosts(['default:9200'])->build();
 $indexer = new PlaceIndexer($client, 'fr');
+$search = new PlaceSearch($client, 'fr');
 
 // Delete the index if it existed
 try {
@@ -83,64 +86,33 @@ $definition->create($client);
 
 // Create the place
 $uuid = (string) Uuid::uuid4();
-$parentUuid = (string) Uuid::uuid4();
+$parentId = new PlaceId((string) Uuid::uuid4());
+$placeType = new Type('city', 'A populated place');
+$fr = new Country('fr');
+
 $place = new PlaceIndex(
     new PlaceId($uuid),
     [ 'Paris', 'Lutèce', 'Paname', 'Parigi' ],
-    [ new Country('fr') ],
-    [ new Type('city', 'A populated place'), new Type('capital', 'A capital of a country') ],
+    [ $fr ],
+    [ $placeType, new Type('capital', 'A capital of a country') ],
     new PlaceHierarchy(
-        [ new PlaceId($parentUuid) ],
+        [ $parentId ],
         [ new PlaceId((string) Uuid::uuid4()) ]
     )
 );
+
 $placeIndexed = $indexer->index($place);
 
 // Get the place
 $place = $indexer->get(new PlaceId($uuid));
 //var_dump($place);
 
-// Search by autocomplete
-$term = 'Paris';
-$type = 'city';
-$searchReq = [
-    'index' => 'fr',
-    'type' => 'place',
-    'body' => [
-        'query' => [
-            'bool' => [
-                'must' => [
-                    [
-                        'multi_match' => [
-                            'query' =>  $term,
-                            'type' =>   'most_fields',
-                            'fields' => [ 'name^10', 'name.prefix_autocomplete^3', 'name.middle_autocomplete' ]
-                        ]
-                    ],
-                    [
-                        'nested' => [
-                            'path' => 'type',
-                            'query' => [
-                                'bool' => [
-                                    'should' => [
-                                        [ 'term' => [ 'type.key' => $type ] ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ],
-                    [
-                        'term' => [ 'hierarchy.parent' => $parentUuid ]
-                    ],
-                    [
-                        'term' => [ 'country' => (string) new Country('fr') ]
-                    ]
-                ]
-            ]
-        ]
-    ]
-];
-$searchResult = $client->search($searchReq);
+// Search
+$criteria = (new PlaceCriteria())
+    ->filterByCountry($fr)
+    ->filterByParent($parentId)
+    ->filterByType($placeType);
+$searchResult = $search->autocomplete('Paris', $criteria);
 var_dump($searchResult);
 
 // Delete
