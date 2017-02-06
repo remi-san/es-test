@@ -2,47 +2,37 @@
 
 namespace Evaneos\Elastic\Indexing;
 
-use Elasticsearch\Client;
-use Evaneos\Elastic\Entity\PlaceIndex;
+use Evaneos\Elastic\Entity\Place;
 use Evaneos\Elastic\Entity\VO\PlaceId;
+use Evaneos\Elastic\Index\Index;
 
 class PlaceIndexer
 {
     const TYPE = 'place';
 
-    /** @var Client */
-    private $client;
-
-    /** @var string */
+    /** @var Index */
     private $index;
 
     /**
      * PlaceIndexer constructor.
      *
-     * @param Client $client
-     * @param string $index
+     * @param Index  $index
      */
-    public function __construct(Client $client, $index)
+    public function __construct(Index $index)
     {
-        $this->client = $client;
         $this->index = $index;
     }
 
     /**
-     * @param PlaceIndex $place
+     * @param Place $place
      *
      * @return array
      */
-    public function index(PlaceIndex $place)
+    public function index(Place $place)
     {
         // TODO deal with return
 
-        return $this->client->index([
-            'index' => $this->index,
-            'type' => self::TYPE,
-            'id' => (string) $place->getId(),
-            'body' => json_encode($place)
-        ]);
+        return $this->index->index(self::TYPE, (string) $place->getId(), $place);
     }
 
     /**
@@ -52,13 +42,9 @@ class PlaceIndexer
      */
     public function get(PlaceId $id)
     {
-        // TODO cast to PlaceIndex
+        // TODO cast to Place
 
-        return $this->client->get([
-            'index' => $this->index,
-            'type' => self::TYPE,
-            'id' => (string) $id
-        ]);
+        return $this->index->get(self::TYPE, (string) $id);
     }
 
     /**
@@ -70,10 +56,6 @@ class PlaceIndexer
     {
         // TODO deal with return
 
-        return $this->client->delete([
-            'index' => $this->index,
-            'type' => self::TYPE,
-            'id' => (string) $id
-        ]);
+        return $this->index->remove(self::TYPE, (string) $id);
     }
 }

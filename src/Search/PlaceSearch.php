@@ -2,27 +2,22 @@
 
 namespace Evaneos\Elastic\Search;
 
-use Elasticsearch\Client;
+use Evaneos\Elastic\Index\Index;
 
 class PlaceSearch
 {
     const TYPE = 'place';
 
-    /** @var Client */
-    private $client;
-
-    /** @var string */
+    /** @var Index */
     private $index;
 
     /**
      * PlaceSearch constructor.
      *
-     * @param Client $client
-     * @param string $index
+     * @param Index $index
      */
-    public function __construct(Client $client, $index)
+    public function __construct(Index $index)
     {
-        $this->client = $client;
         $this->index = $index;
     }
 
@@ -49,19 +44,15 @@ class PlaceSearch
         }
 
         $searchReq = [
-            'index' => $this->index,
-            'type' => self::TYPE,
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => $must
-                    ]
+            'query' => [
+                'bool' => [
+                    'must' => $must
                 ]
             ]
         ];
 
         // TODO parse return
 
-        return $this->client->search($searchReq);
+        return $this->index->search(self::TYPE, $searchReq);
     }
 }

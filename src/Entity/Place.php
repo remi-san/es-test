@@ -7,7 +7,7 @@ use Evaneos\Elastic\Entity\VO\PlaceHierarchy;
 use Evaneos\Elastic\Entity\VO\PlaceId;
 use Evaneos\Elastic\Entity\VO\Type;
 
-class PlaceIndex implements \JsonSerializable
+class Place implements \JsonSerializable
 {
     /** @var PlaceId */
     private $id;
@@ -25,7 +25,7 @@ class PlaceIndex implements \JsonSerializable
     private $hierarchy;
 
     /**
-     * PlaceIndex constructor.
+     * Place constructor.
      *
      * @param PlaceId        $id
      * @param string[]       $name

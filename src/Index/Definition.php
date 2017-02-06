@@ -31,32 +31,11 @@ class Definition implements \JsonSerializable
     }
 
     /**
-     * @param Client $client
-     *
-     * @return array
+     * @return string
      */
-    public function create(Client $client)
+    public function getName()
     {
-        return $client
-            ->indices()
-            ->create([
-                'index' => $this->name,
-                'body' => json_encode($this)
-            ]);
-    }
-
-    /**
-     * @param Client $client
-     *
-     * @return array
-     */
-    public function delete(Client $client)
-    {
-        return $client
-            ->indices()
-            ->delete([
-                'index' => $this->name
-            ]);
+        return $this->name;
     }
 
     /**
