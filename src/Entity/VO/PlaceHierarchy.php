@@ -2,6 +2,7 @@
 
 namespace Evaneos\Elastic\Entity\VO;
 
+use Assert\AssertionFailedException;
 use Evaneos\Elastic\Entity\VO\PlaceId;
 
 class PlaceHierarchy implements \JsonSerializable
@@ -70,5 +71,25 @@ class PlaceHierarchy implements \JsonSerializable
             'parent' => $this->parents,
             'grandParent' => $this->grandParents
         ];
+    }
+
+    /**
+     * @param array $jsonHierarchy
+     *
+     * @return PlaceHierarchy
+     *
+     * @throws AssertionFailedException
+     */
+    public static function fromJsonArray(array $jsonHierarchy)
+    {
+        $parents = array_map(function ($parentId) {
+            return new PlaceId($parentId);
+        }, $jsonHierarchy['parent']);
+
+        $grandParents = array_map(function ($grandParentId) {
+            return new PlaceId($grandParentId);
+        }, $jsonHierarchy['grandParent']);
+
+        return new PlaceHierarchy($parents, $grandParents);
     }
 }

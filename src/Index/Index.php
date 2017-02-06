@@ -2,6 +2,9 @@
 
 namespace Evaneos\Elastic\Index;
 
+use Evaneos\Elastic\Index\Exception\IndexException;
+use Evaneos\Elastic\Index\Exception\TypeException;
+
 interface Index
 {
     /**
@@ -10,12 +13,17 @@ interface Index
     public function getName();
 
     /**
-     * @return array
+     * @return bool
+     */
+    public function exists();
+
+    /**
+     * @throws IndexException
      */
     public function create();
 
     /**
-     * @return array
+     * @throws IndexException
      */
     public function delete();
 
@@ -24,7 +32,9 @@ interface Index
      * @param string            $id
      * @param \JsonSerializable $indexable
      *
-     * @return mixed
+     * @return string The id
+     *
+     * @throws TypeException
      */
     public function index($type, $id, \JsonSerializable $indexable);
 
@@ -32,7 +42,7 @@ interface Index
      * @param string $type
      * @param string $id
      *
-     * @return mixed
+     * @throws TypeException
      */
     public function remove($type, $id);
 
@@ -41,6 +51,8 @@ interface Index
      * @param string $id
      *
      * @return mixed
+     *
+     * @throws TypeException
      */
     public function get($type, $id);
 
@@ -48,7 +60,9 @@ interface Index
      * @param string $type
      * @param array  $criteria
      *
-     * @return mixed
+     * @return array
+     *
+     * @throws TypeException
      */
     public function search($type, array $criteria);
 }

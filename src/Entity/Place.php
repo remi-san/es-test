@@ -2,6 +2,7 @@
 
 namespace Evaneos\Elastic\Entity;
 
+use Assert\AssertionFailedException;
 use Evaneos\Elastic\Entity\VO\Country;
 use Evaneos\Elastic\Entity\VO\PlaceHierarchy;
 use Evaneos\Elastic\Entity\VO\PlaceId;
@@ -104,5 +105,35 @@ class Place implements \JsonSerializable
             'type' => $this->types,
             'hierarchy' => $this->hierarchy
         ];
+    }
+
+    /**
+     * @param array $jsonArray
+     *
+     * @return Place
+     *
+     * @throws AssertionFailedException
+     * @throws \DomainException
+     * @throws \OutOfBoundsException
+     */
+    public static function fromJsonArray(array $jsonArray)
+    {
+        $countries = array_map(function ($countryIso) {
+            return Country::fromJsonArray($countryIso);
+        }, $jsonArray['country']);
+
+        $types = array_map(function ($jsonType) {
+            return Type::fromJsonArray($jsonType);
+        }, $jsonArray['type']);
+
+        $hierarchy = PlaceHierarchy::fromJsonArray($jsonArray['hierarchy']);
+
+        return new Place(
+            new PlaceId($jsonArray['id']),
+            $jsonArray['name'],
+            $countries,
+            $types,
+            $hierarchy
+        );
     }
 }

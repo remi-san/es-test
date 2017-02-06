@@ -64,4 +64,17 @@ class Country implements \JsonSerializable
     {
         return $this->iso2;
     }
+
+    /**
+     * @param string $iso
+     *
+     * @return Country
+     *
+     * @throws \DomainException
+     * @throws \OutOfBoundsException
+     */
+    public static function fromJsonArray($iso)
+    {
+        return new self($iso);
+    }
 }

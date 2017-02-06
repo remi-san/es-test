@@ -2,6 +2,8 @@
 
 namespace Evaneos\Elastic\Search;
 
+use Evaneos\Elastic\Entity\Place;
+use Evaneos\Elastic\Index\Exception\TypeException;
 use Evaneos\Elastic\Index\Index;
 
 class PlaceSearch
@@ -26,6 +28,11 @@ class PlaceSearch
      * @param PlaceCriteria $criteria
      *
      * @return array
+     *
+     * @throws TypeException
+     * @throws \DomainException
+     * @throws \OutOfBoundsException
+     * @throws \Assert\AssertionFailedException
      */
     public function autocomplete($partial, PlaceCriteria $criteria = null)
     {
@@ -51,8 +58,10 @@ class PlaceSearch
             ]
         ];
 
-        // TODO parse return
+        $jsonSearchResult = $this->index->search(self::TYPE, $searchReq);
 
-        return $this->index->search(self::TYPE, $searchReq);
+        return array_map(function ($result) {
+            return Place::fromJsonArray($result['_source']);
+        }, $jsonSearchResult['hits']['hits']);
     }
 }

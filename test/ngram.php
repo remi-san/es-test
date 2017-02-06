@@ -21,16 +21,15 @@ $index = new LanguageIndex(
     'fr',
     'french'
 );
-$indexer = new PlaceIndexer($index);
-$search = new PlaceSearch($index);
 
 // Delete the index if it existed
-try {
+if ($index->exists()) {
     $index->delete();
-} catch (\Exception $e) {
 }
-
 $index->create();
+
+$indexer = new PlaceIndexer($index);
+$search = new PlaceSearch($index);
 
 // Create the place
 $placeId = new PlaceId((string) Uuid::uuid4());
@@ -49,7 +48,7 @@ $place = new Place(
     )
 );
 
-$placeIndexed = $indexer->index($place);
+$indexer->index($place);
 
 // Get the place
 $place = $indexer->get($placeId);
@@ -60,7 +59,7 @@ $criteria = (new PlaceCriteria())
     ->filterByParent($parentId)
     ->filterByType($placeType);
 $searchResult = $search->autocomplete('Paris', $criteria);
-var_dump($searchResult);
+echo json_encode($searchResult) . PHP_EOL;
 
 // Delete
 $indexer->delete($placeId);

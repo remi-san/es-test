@@ -53,4 +53,14 @@ class Type implements \JsonSerializable
             'name' => $this->name
         ];
     }
+
+    /**
+     * @param array $jsonType
+     *
+     * @return Type
+     */
+    public static function fromJsonArray(array $jsonType)
+    {
+        return new self($jsonType['key'], $jsonType['name']);
+    }
 }

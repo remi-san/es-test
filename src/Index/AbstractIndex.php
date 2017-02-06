@@ -4,6 +4,10 @@ namespace Evaneos\Elastic\Index;
 
 use Assert\AssertionFailedException;
 use Elasticsearch\Client;
+use Elasticsearch\Common\Exceptions\BadRequest400Exception;
+use Elasticsearch\Common\Exceptions\Missing404Exception;
+use Evaneos\Elastic\Index\Exception\IndexException;
+use Evaneos\Elastic\Index\Exception\TypeException;
 
 abstract class AbstractIndex implements Index
 {
@@ -37,28 +41,42 @@ abstract class AbstractIndex implements Index
     }
 
     /**
-     * @return array
+     * @return bool
      */
-    public function create()
+    public function exists()
     {
-        return $this->client
-            ->indices()
-            ->create([
-                 'index' => $this->getName(),
-                 'body' => json_encode($this->definition)
-             ]);
+        return $this->client->indices()->exists([ 'index' => $this->getName() ]);
     }
 
     /**
-     * @return array
+     * @throws IndexException
+     */
+    public function create()
+    {
+        try {
+            $this->client
+                ->indices()
+                ->create([
+                    'index' => $this->getName(),
+                    'body' => json_encode($this->definition)
+                ]);
+        } catch (BadRequest400Exception $e) {
+            throw IndexException::indexCreationFailed($e);
+        }
+    }
+
+    /**
+     * @throws IndexException
      */
     public function delete()
     {
-        return $this->client
-            ->indices()
-            ->delete([
-                 'index' => $this->getName()
-             ]);
+        try {
+            $this->client
+                ->indices()
+                ->delete([ 'index' => $this->getName() ]);
+        } catch (BadRequest400Exception $e) {
+            throw IndexException::indexDeletionFailed($e);
+        }
     }
 
     /**
@@ -66,31 +84,41 @@ abstract class AbstractIndex implements Index
      * @param string            $id
      * @param \JsonSerializable $indexable
      *
-     * @return mixed
+     * @return string The id
+     *
+     * @throws TypeException
      */
     public function index($type, $id, \JsonSerializable $indexable)
     {
-        return $this->client->index([
-            'index' => $this->getName(),
-            'type' => $type,
-            'id' => (string) $id,
-            'body' => json_encode($indexable)
-        ]);
+        try {
+            return $this->client->index([
+                'index' => $this->getName(),
+                'type' => $type,
+                'id' => (string) $id,
+                'body' => json_encode($indexable)
+            ])['_id'];
+        } catch (BadRequest400Exception $e) {
+            throw TypeException::indexingFailed($e);
+        }
     }
 
     /**
      * @param string $type
      * @param string $id
      *
-     * @return mixed
+     * @throws TypeException
      */
     public function remove($type, $id)
     {
-        return $this->client->delete([
-            'index' => $this->getName(),
-            'type' => $type,
-            'id' => (string) $id
-        ]);
+        try {
+            $this->client->delete([
+                'index' => $this->getName(),
+                'type' => $type,
+                'id' => (string) $id
+            ]);
+        } catch (BadRequest400Exception $e) {
+            throw TypeException::removingFromIndexFailed($e);
+        }
     }
 
     /**
@@ -98,21 +126,31 @@ abstract class AbstractIndex implements Index
      * @param string $id
      *
      * @return mixed
+     *
+     * @throws TypeException
      */
     public function get($type, $id)
     {
-        return $this->client->get([
-            'index' => $this->getName(),
-            'type' => $type,
-            'id' => (string) $id
-        ]);
+        try {
+            return $this->client->get([
+                'index' => $this->getName(),
+                'type' => $type,
+                'id' => (string) $id
+            ]);
+        } catch (Missing404Exception $e) {
+            return null;
+        } catch (BadRequest400Exception $e) {
+            throw TypeException::retrievingFailed($e);
+        }
     }
 
     /**
      * @param string $type
      * @param array  $criteria
      *
-     * @return mixed
+     * @return array
+     *
+     * @throws TypeException
      */
     public function search($type, array $criteria)
     {
@@ -122,7 +160,11 @@ abstract class AbstractIndex implements Index
             'body' => json_encode($criteria)
         ];
 
-        return $this->client->search($searchReq);
+        try {
+            return $this->client->search($searchReq);
+        } catch (BadRequest400Exception $e) {
+            throw TypeException::retrievingFailed($e);
+        }
     }
 
     /**

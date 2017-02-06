@@ -2,8 +2,10 @@
 
 namespace Evaneos\Elastic\Indexing;
 
+use Assert\AssertionFailedException;
 use Evaneos\Elastic\Entity\Place;
 use Evaneos\Elastic\Entity\VO\PlaceId;
+use Evaneos\Elastic\Index\Exception\TypeException;
 use Evaneos\Elastic\Index\Index;
 
 class PlaceIndexer
@@ -26,36 +28,41 @@ class PlaceIndexer
     /**
      * @param Place $place
      *
-     * @return array
+     * @throws TypeException
      */
     public function index(Place $place)
     {
-        // TODO deal with return
-
-        return $this->index->index(self::TYPE, (string) $place->getId(), $place);
+        $this->index->index(self::TYPE, (string) $place->getId(), $place);
     }
 
     /**
      * @param PlaceId $id
      *
-     * @return array
+     * @return Place
+     *
+     * @throws TypeException
+     * @throws \DomainException
+     * @throws \OutOfBoundsException
+     * @throws AssertionFailedException
      */
     public function get(PlaceId $id)
     {
-        // TODO cast to Place
+        $jsonPlace = $this->index->get(self::TYPE, (string) $id);
 
-        return $this->index->get(self::TYPE, (string) $id);
+        if ($jsonPlace === null) {
+            return null;
+        }
+
+        return Place::fromJsonArray($jsonPlace['_source']);
     }
 
     /**
      * @param PlaceId $id
      *
-     * @return array
+     * @throws TypeException
      */
     public function delete(PlaceId $id)
     {
-        // TODO deal with return
-
-        return $this->index->remove(self::TYPE, (string) $id);
+        $this->index->remove(self::TYPE, (string) $id);
     }
 }
