@@ -6,9 +6,7 @@ use Evaneos\Elastic\Index\Mapping;
 
 class MappingsCollection implements \JsonSerializable
 {
-    /**
-     * @var Mapping[]
-     */
+    /** @var Mapping[] */
     private $mappings;
 
     /**

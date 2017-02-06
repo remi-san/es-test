@@ -6,9 +6,7 @@ use Evaneos\Elastic\Index\Analysis\Filter;
 
 class FiltersCollection implements \JsonSerializable
 {
-    /**
-     * @var Filter[]
-     */
+    /** @var Filter[] */
     private $filters;
 
     /**

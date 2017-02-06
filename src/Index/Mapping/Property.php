@@ -9,13 +9,9 @@ interface Property extends \JsonSerializable
     const TYPE_OBJECT = 'object';
     const TYPE_NESTED = 'nested';
     
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getName();
 
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getType();
 }

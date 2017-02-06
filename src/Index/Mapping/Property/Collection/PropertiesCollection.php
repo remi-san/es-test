@@ -6,9 +6,7 @@ use Evaneos\Elastic\Index\Mapping\Property;
 
 class PropertiesCollection implements \JsonSerializable
 {
-    /**
-     * @var Property[]
-     */
+    /** @var Property[] */
     private $properties;
 
     /**

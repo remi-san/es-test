@@ -11,10 +11,13 @@ use Evaneos\Elastic\Index\Analysis\Tokenizer\Collection\TokenizersCollection;
 
 class Analysis implements \JsonSerializable
 {
+    /** @var FiltersCollection */
     private $filters;
 
+    /** @var TokenizersCollection */
     private $tokenizers;
 
+    /** @var AnalyzersCollection */
     private $analyzers;
 
     /**

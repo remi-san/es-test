@@ -2,7 +2,6 @@
 
 namespace Evaneos\Elastic\Index;
 
-use Elasticsearch\Client;
 use Evaneos\Elastic\Index\Mapping\Collection\MappingsCollection;
 
 class Definition implements \JsonSerializable

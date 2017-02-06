@@ -6,9 +6,7 @@ use Evaneos\Elastic\Index\Analysis\Tokenizer;
 
 class TokenizersCollection implements \JsonSerializable
 {
-    /**
-     * @var Tokenizer[]
-     */
+    /** @var Tokenizer[] */
     private $tokenizers;
 
     /**
