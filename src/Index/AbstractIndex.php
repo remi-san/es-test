@@ -22,14 +22,14 @@ abstract class AbstractIndex implements Index
      *
      * @param Client $client
      * @param string $name
-     * @param string $language
+     * @param string $languageAnalyzer
      *
      * @throws AssertionFailedException
      */
-    public function __construct(Client $client, $name, $language)
+    public function __construct(Client $client, $name, $languageAnalyzer)
     {
         $this->client = $client;
-        $this->definition = $this->getDefinition($name, $language);
+        $this->definition = $this->getDefinition($name, $languageAnalyzer);
     }
 
     /**
@@ -169,11 +169,11 @@ abstract class AbstractIndex implements Index
 
     /**
      * @param string $name
-     * @param string $language
+     * @param string $languageAnalyzer
      *
      * @return Definition
      *
      * @throws AssertionFailedException
      */
-    abstract protected function getDefinition($name, $language);
+    abstract protected function getDefinition($name, $languageAnalyzer);
 }

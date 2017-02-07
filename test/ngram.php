@@ -14,50 +14,40 @@ use Evaneos\Elastic\Search\PlaceCriteria;
 use Evaneos\Elastic\Search\PlaceSearch;
 use Ramsey\Uuid\Uuid;
 
-$index = new LanguageIndex(
-    ClientBuilder::create()
-        ->setHosts(['default:9200'])
-        ->build(),
-    'fr',
-    'french'
-);
+// Connection
+$client = ClientBuilder::create()->setHosts(['default:9200'])->build();
+$index = new LanguageIndex($client, 'fr', 'french');
 
-// Delete the index if it existed
+// Delete the Index if it existed
 if ($index->exists()) {
     $index->delete();
 }
+// Create Index
 $index->create();
-
-$indexer = new PlaceIndexer($index);
-$search = new PlaceSearch($index);
 
 // Create the place
 $placeId = new PlaceId((string) Uuid::uuid4());
-$parentId = new PlaceId((string) Uuid::uuid4());
-$placeType = new Type('city', 'A populated place');
+$names = [ 'Paris', 'Lutèce', 'Paname', 'Parigi' ];
 $fr = new Country('fr');
+$placeType = new Type('city', 'A populated place');
+$capitalType = new Type('capital', 'A capital of a country');
+$parentId = new PlaceId((string) Uuid::uuid4());
+$grandParentId = new PlaceId((string) Uuid::uuid4());
+$placeHierarchy = new PlaceHierarchy([ $parentId ], [ $grandParentId ]);
 
-$place = new Place(
-    $placeId,
-    [ 'Paris', 'Lutèce', 'Paname', 'Parigi' ],
-    [ $fr ],
-    [ $placeType, new Type('capital', 'A capital of a country') ],
-    new PlaceHierarchy(
-        [ $parentId ],
-        [ new PlaceId((string) Uuid::uuid4()) ]
-    )
-);
+$place = new Place($placeId, $names, [ $fr ], [ $placeType, $capitalType ], $placeHierarchy);
 
+// Index
+$indexer = new PlaceIndexer($index);
 $indexer->index($place);
 
 // Get the place
-$place = $indexer->get($placeId);
+$placeRetrieved = $indexer->get($placeId);
+echo json_encode($placeRetrieved) . PHP_EOL;
 
 // Search
-$criteria = (new PlaceCriteria())
-    ->filterByCountry($fr)
-    ->filterByParent($parentId)
-    ->filterByType($placeType);
+$search = new PlaceSearch($index);
+$criteria = (new PlaceCriteria())->filterByCountry($fr)->filterByParent($parentId)->filterByType($placeType);
 $searchResult = $search->autocomplete('Paris', $criteria);
 echo json_encode($searchResult) . PHP_EOL;
 

@@ -22,59 +22,75 @@ class LanguageIndex extends AbstractIndex
 {
     /**
      * @param string $name
-     * @param string $language
+     * @param string $languageAnalyzer
      *
      * @return Definition
      *
      * @throws AssertionFailedException
      */
-    protected function getDefinition($name, $language)
+    protected function getDefinition($name, $languageAnalyzer)
     {
-        $analysis = (new Analysis())
+        $analysis = $this->getAnalyzer();
+        $mappings = (new MappingsCollection())->addMapping($this->getPlaceMapping($languageAnalyzer));
+
+        return new Definition($name, $analysis, $mappings);
+    }
+
+    /**
+     * @return Analysis
+     */
+    private function getAnalyzer()
+    {
+        return (new Analysis())
             ->addFilter(new EdgeNGramFilter(2, 10))
             ->addFilter(new NGramFilter(3, 10))
             ->addAnalyzer(new MiddleAutocompleteAnalyzer())
             ->addAnalyzer(new PrefixAutocompleteAnalyzer());
+    }
 
-        $mappings = (new MappingsCollection())
-            ->addMapping(
-                (new Mapping('place'))
-                    ->addProperty(
-                        (new SimpleProperty('name', Property::TYPE_STRING, $language))
-                            ->addField(
-                                new SimpleProperty(
-                                    'prefix_autocomplete',
-                                    Property::TYPE_STRING,
-                                    PrefixAutocompleteAnalyzer::NAME
-                                )
-                            )
-                            ->addField(
-                                new SimpleProperty(
-                                    'middle_autocomplete',
-                                    Property::TYPE_STRING,
-                                    MiddleAutocompleteAnalyzer::NAME
-                                )
-                            )
-                    )
-                    ->addProperty(new SimpleProperty('country', Property::TYPE_KEYWORD))
-                    ->addProperty(
-                        new NestedProperty(
-                            'type',
-                            (new PropertiesCollection())
-                                ->addProperty(new SimpleProperty('key', Property::TYPE_KEYWORD))
-                                ->addProperty(new SimpleProperty('name', Property::TYPE_STRING))
+    /**
+     * @param $languageAnalyzer
+     *
+     * @return Mapping
+     *
+     * @throws AssertionFailedException
+     */
+    private function getPlaceMapping($languageAnalyzer)
+    {
+        return (new Mapping('place'))
+            ->addProperty(
+                (new SimpleProperty('name', Property::TYPE_STRING, $languageAnalyzer))
+                    ->addField(
+                        new SimpleProperty(
+                            'prefix_autocomplete',
+                            Property::TYPE_STRING,
+                            PrefixAutocompleteAnalyzer::NAME
                         )
                     )
-                    ->addProperty(
-                        new ObjectProperty(
-                            'hierarchy',
-                            (new PropertiesCollection())
-                                ->addProperty(new SimpleProperty('parent', Property::TYPE_KEYWORD))
-                                ->addProperty(new SimpleProperty('grandParent', Property::TYPE_KEYWORD))
+                    ->addField(
+                        new SimpleProperty(
+                            'middle_autocomplete',
+                            Property::TYPE_STRING,
+                            MiddleAutocompleteAnalyzer::NAME
                         )
                     )
+            )
+            ->addProperty(new SimpleProperty('country', Property::TYPE_KEYWORD))
+            ->addProperty(
+                new NestedProperty(
+                    'type',
+                    (new PropertiesCollection())
+                        ->addProperty(new SimpleProperty('key', Property::TYPE_KEYWORD))
+                        ->addProperty(new SimpleProperty('name', Property::TYPE_STRING))
+                )
+            )
+            ->addProperty(
+                new ObjectProperty(
+                    'hierarchy',
+                    (new PropertiesCollection())
+                        ->addProperty(new SimpleProperty('parent', Property::TYPE_KEYWORD))
+                        ->addProperty(new SimpleProperty('grandParent', Property::TYPE_KEYWORD))
+                )
             );
-
-        return new Definition($name, $analysis, $mappings);
     }
 }
